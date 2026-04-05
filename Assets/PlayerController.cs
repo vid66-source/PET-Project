@@ -5,41 +5,46 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody _rb;
 
-    [Header("Movement Settings")]
-    [SerializeField]private float _speed = 5f;
-    private Vector3 _inputVector;
+    [Header("Movement")]
+    [SerializeField] private float _speed;
 
-    [Header("Look Settings")]
-    [SerializeField]private float _mouseSensitivity = 4f;
-    void Start()
+    private Vector3 _inputDir;
+
+    [Header("Rotation")]
+    [SerializeField] private float _mouseSensitivity;
+
+    private void Start()
     {
         _rb = GetComponent<Rigidbody>();
     }
 
-    void Update()
+    private void Update()
     {
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Vertical");
-
-        _inputVector = (transform.right * x + transform.forward * y).normalized;
-
-        PlayerYawRotation();
-
+        CalculateInputDir();
+        LookRotation();
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         MovePlayer();
     }
 
+    private void CalculateInputDir()
+    {
+        float x = Input.GetAxis("Horizontal");
+        float y = Input.GetAxis("Vertical");
+        Vector3 dir = transform.right * x + transform.forward * y;
+        _inputDir = dir.normalized;
+    }
+
     private void MovePlayer()
     {
-        Vector3 targetVelocity = _inputVector  * _speed;
+        Vector3 targetVelocity = _inputDir * _speed;
         targetVelocity.y = _rb.velocity.y;
         _rb.velocity = targetVelocity;
     }
 
-    private void PlayerYawRotation()
+    private void LookRotation()
     {
         float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity;
         transform.Rotate(0, mouseX, 0);
