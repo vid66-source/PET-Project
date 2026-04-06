@@ -16,10 +16,11 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         _rb = GetComponent<Rigidbody>();
-        if(_rb == null)
-            Debug.LogError("No Rigidbody attached.");
         _col = GetComponentInChildren<Collider>();
+        if(_col == null)
+            Debug.LogError("No Collider attached.");
     }
 
     private void Update()
@@ -27,7 +28,6 @@ public class PlayerController : MonoBehaviour
         CalculateInputDir();
         LookRotation();
         _jumpRequested = IsGrounded() && Input.GetKeyDown(KeyCode.Space);
-        Debug.DrawRay(_col.bounds.center, Vector3.down * (_col.bounds.extents.y + 0.1f), Color.red);
     }
 
     private void FixedUpdate()
