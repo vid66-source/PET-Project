@@ -361,7 +361,7 @@ MonoBehaviour:
   _mainCamera: {fileID: 963194228}
   _maxDistance: 15
   _bloodVFX: {fileID: 2891271040024072051, guid: a66a40cbdd713fb4ab9949b45c968bea, type: 3}
-  _fireDelay: 0
+  _fireDelay: 3
   _bloodVFXDelay: 2
 --- !u!1 &705507993
 GameObject:

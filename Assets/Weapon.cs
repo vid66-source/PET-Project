@@ -9,7 +9,7 @@ public class Weapon : MonoBehaviour
     [SerializeField] private GameObject _bloodVFX;
     [SerializeField] private float _fireDelay = 0.5f;
     [SerializeField] private float _bloodVFXDelay = 2f;
-    private bool _canFire = true;
+    private float _nextFireTime;
 
     private List<GameObject> _bloodVFXPool;
 
@@ -28,49 +28,42 @@ public class Weapon : MonoBehaviour
 
     private void Update()
     {
-        Shoot();
+        if(Input.GetMouseButtonDown(0))
+        {
+            Shoot();
+        }
         Debug.DrawRay(_mainCamera.position, _mainCamera.forward * _maxDistance, Color.red);
     }
 
     private void Shoot()
     {
-        if (Input.GetMouseButtonDown(0) && _canFire)
+        if (Time.time < _nextFireTime) return;
+        _nextFireTime = Time.time + _fireDelay;
+
+        if (!Physics.Raycast(_mainCamera.transform.position, _mainCamera.transform.forward, out RaycastHit hit,
+                _maxDistance)) return;
+
+        Enemy enemy = hit.collider.GetComponent<Enemy>();
+
+        if (!enemy) return;
+
+        enemy.TakeDamage(10);
+        Quaternion spawnRotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
+        int indexReadyToUse = BloodVFXPool.FindIndex(b => !b.activeInHierarchy);
+
+        if (indexReadyToUse == -1)
         {
-            _canFire = false;
-            StartCoroutine(WaitForFire());
-            Physics.Raycast(_mainCamera.transform.position, _mainCamera.transform.forward, out RaycastHit hit,
-                _maxDistance);
-            if (hit.collider != null)
-            {
-                Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy)
-                {
-                    enemy.TakeDamage(10);
-                    Quaternion spawnRotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
-                    int indexReadyToUse = BloodVFXPool.FindIndex(b => !b.activeInHierarchy);
-
-                    if (indexReadyToUse == -1)
-                    {
-                        GameObject newPrefab = Instantiate(_bloodVFX, hit.point, spawnRotation);
-                        StartCoroutine(DeactivateAfterDelay(newPrefab, _bloodVFXDelay));
-                        _bloodVFXPool.Add(newPrefab);
-                    }
-                    else
-                    {
-                        BloodVFXPool[indexReadyToUse].transform.position = hit.point;
-                        BloodVFXPool[indexReadyToUse].transform.rotation = spawnRotation;
-                        BloodVFXPool[indexReadyToUse].SetActive(true);
-                        StartCoroutine(DeactivateAfterDelay(BloodVFXPool[indexReadyToUse], _bloodVFXDelay));
-                    }
-                }
-            }
+            GameObject newPrefab = Instantiate(_bloodVFX, hit.point, spawnRotation);
+            StartCoroutine(DeactivateAfterDelay(newPrefab, _bloodVFXDelay));
+            _bloodVFXPool.Add(newPrefab);
         }
-    }
-
-    private IEnumerator WaitForFire()
-    {
-        yield return new WaitForSeconds(_fireDelay);
-        _canFire = true;
+        else
+        {
+            BloodVFXPool[indexReadyToUse].transform.position = hit.point;
+            BloodVFXPool[indexReadyToUse].transform.rotation = spawnRotation;
+            BloodVFXPool[indexReadyToUse].SetActive(true);
+            StartCoroutine(DeactivateAfterDelay(BloodVFXPool[indexReadyToUse], _bloodVFXDelay));
+        }
     }
 
     private IEnumerator DeactivateAfterDelay(GameObject obj, float delay)
@@ -91,7 +84,7 @@ public class Weapon : MonoBehaviour
         {
             bl.SetActive(false);
         }
+
         return bloodPool;
     }
-
 }
